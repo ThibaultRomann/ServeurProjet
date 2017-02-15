@@ -2,8 +2,8 @@
 var express = require('express'); 
 
 // Paramètres du serveur local 
-var hostname = 'localhost'; 
-var port = 7000; 
+//var hostname = 'localhost'; 
+//var port = 7000; 
 
 // Définition de la variable pour utiliser les fonctionnalités du module mongoose 
 var mongoose = require('mongoose'); 
@@ -35,9 +35,17 @@ var sujetSchema = mongoose.Schema({
 var Sujet = mongoose.model('Sujet', sujetSchema);
 
 var app = express(); 
+
+
+app.set('port', (process.env.PORT || 5000));
+
+
 var bodyParser = require("body-parser"); 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+
+
 
 //Afin de faciliter le routage (les URL que nous souhaitons prendre en charge dans notre API), nous créons un objet Router.
 //C'est à partir de cet objet myRouter, que nous allons implémenter les méthodes. 
@@ -80,9 +88,15 @@ res.json({message : "Suppression d'un objet dans la liste", methode : req.method
 app.use(myRouter);  
 
 // Démarrage du serveur 
-app.listen(port, hostname, function(){
-	console.log("Mon serveur fonctionne sur http://"+ hostname +":"+port); 
+
+app.listen(app.get('port'), function() {
+  console.log('Node app is running on port', app.get('port'));
 });
+
+
+/*app.listen(port, hostname, function(){
+	console.log("Mon serveur fonctionne sur http://"+ hostname +":"+port); 
+});*/
 
 myRouter.route('/')
  
