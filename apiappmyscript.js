@@ -1,21 +1,14 @@
-// Définition de la variable pour utiliser les fonctionnalites du module express  
+// Utilisation du module express  
 var express = require('express'); 
 
-// Paramètres du serveur local 
-//var hostname = 'localhost'; 
-//var port = 7000; 
+// Connexion à la base de données Mongo  
+var mongoose = require('mongoose');
 
-// Définition de la variable pour utiliser les fonctionnalités du module mongoose 
-var mongoose = require('mongoose'); 
-
-// Options recommandées par le fournisseur MLab 
 var options = { server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } }, 
 replset: { socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 } } };
 
-// URL de la base de données Mongo hébergée chez MLab 
 var urlmongo = "mongodb://matthieu:pwd@ds129179.mlab.com:29179/mydbpos"; 
-
-// Connexion de l'api à la base de donnée Mongo 
+ 
 mongoose.connect(urlmongo, options);
 var db = mongoose.connection; 
 db.on('error', console.error.bind(console, 'Erreur lors de la connexion')); 
@@ -23,66 +16,96 @@ db.once('open', function (){
     console.log("Connecte a la base de donnee Mongo"); 
 }); 
 
-
 // Création du modèle de données à stocker dans la base, le même modèle que celui de la donnée envoyée par l'application 
-var sujetSchema = mongoose.Schema({
-    titre: String, 
-    enonce: String, 
-    niveau: String, 
-    tagsujets: String   
+var userDataSchema = mongoose.Schema({
+    idclient: String, 
+    idexo: String, 
+    reponse : String   
 }); 
 
-var Sujet = mongoose.model('Sujet', sujetSchema);
+var UserData = mongoose.model('UserData', userDataSchema);
+
+var userScoreSchema = mongoose.Schema({
+    idscore: String,
+    score : Number 
+});
+
+var UserScore = mongoose.model('UserScore',userScoreSchema);
 
 var app = express(); 
 
-
+// Création du port 
 app.set('port', (process.env.PORT || 5000));
-
 
 var bodyParser = require("body-parser"); 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
-
-
-//Afin de faciliter le routage (les URL que nous souhaitons prendre en charge dans notre API), nous créons un objet Router.
-//C'est à partir de cet objet myRouter, que nous allons implémenter les méthodes. 
+// Création de la route userdata pour le stockage des données utilisateurs  
 var myRouter = express.Router(); 
 
+myRouter.route('/userdata')
 
-myRouter.route('/sujets')
-// Implémentation de get, post, put, delete 
-
+// Implémentation des méthodes de l'API REST (get, post, put, delete) 
 .get(function(req,res){ 
 	  res.json({
- message : "Liste des sujets presents dans la base de donnees:",
+ message : "Liste des donnees utilisateurs dans la base de donnees:",
  nbResultat : req.query.maxresultat, 
  methode : req.method });
 })
 
 .post(function(req,res){
-      var sujet = new Sujet();
-      sujet.titre = req.body.titre;
-      sujet.enonce = req.body.enonce;
-      sujet.niveau = req.body.niveau;
-      sujet.tagsujets = req.body.tagsujets;
-      sujet.save(function(err){
+      var data = new UserData();
+      data.idclient = req.body.idclient;
+      data.idexo = req.body.idexo;
+      data.reponse = req.body.reponse;
+      data.save(function(err){
         if(err){
           res.send(err);
         }
-        res.send({message : 'OK le sujet est stocke dans la base de donnees'});
+        res.send({message : 'OK la donnee utilisateur est stockee dans la base de donnees'});
       })
 })
 
 .put(function(req,res){ 
-      res.json({message : "Mise à jour des informations d'un sujet dans la liste", methode : req.method});
+      res.json({message : "Mise à jour des informations", methode : req.method});
 })
 
 .delete(function(req,res){ 
-res.json({message : "Suppression d'un objet dans la liste", methode : req.method});  
+res.json({message : "Suppression d'un objet", methode : req.method});  
+});
+
+// Création de la route userscore pour le stockage des scores de chaque utilisateur
+myRouter.route('/userscore')
+
+// Implémentation des méthodes de l'API REST (get, post, put, delete) 
+.get(function(req,res){ 
+    res.json({
+ message : "Liste des scores utilisateurs dans la base de donnees:",
+ nbResultat : req.query.maxresultat, 
+ methode : req.method });
+})
+
+.post(function(req,res){
+      var sc = new UserScore();
+      sc.idscore = req.body.idscore;
+      sc.score = req.body.score;
+      sc.save(function(err){
+        if(err){
+          res.send(err);
+        }
+        res.send({message : 'Score utilisateur stocke'});
+      })
+})
+
+.put(function(req,res){ 
+      res.json({message : "Mise à jour des informations", methode : req.method});
+})
+
+.delete(function(req,res){ 
+res.json({message : "Suppression d'un objet", methode : req.method});  
 }); 
+
 
 // Utilisation du routeur 
 app.use(myRouter);  
@@ -93,51 +116,44 @@ app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });
 
-
-/*app.listen(port, hostname, function(){
-	console.log("Mon serveur fonctionne sur http://"+ hostname +":"+port); 
-});*/
-
 myRouter.route('/')
  
 .all(function(req,res){ 
-      res.json({message : "Bienvenue sur notre API ", methode : req.method});
+      res.json({message : "Bienvenue sur notre API REST ", methode : req.method});
 });
 
 
-myRouter.route('/sujet/:sujet_id')
+myRouter.route('/userdat/:userdata_id')
 .get(function(req,res){ 
-            Sujet.findById(req.params.sujet_id, function(err, sujet) {
+            UserData.findById(req.params.userdata_id, function(err, userdat) {
             if (err)
                 res.send(err);
-            res.json(sujet);
+            res.json(userdat);
         });
 })
 .put(function(req,res){ 
-                Sujet.findById(req.params.sujet_id, function(err, sujet) {
+                UserData.findById(req.params.userdata_id, function(err, userdat) {
                 if (err){
                     res.send(err);
                 }
-                        sujet.titre = req.body.titre;
-                        sujet.enonce = req.body.enonce;
-                        sujet.niveau = req.body.niveau;
-                        sujet.tagsujets = req.body.tagsujets;
-                              sujet.save(function(err){
+                          userdat.idclient = req.body.idclient;
+                          userdat.idexo = req.body.idexo;
+                          userdat.reponse = req.body.reponse;
+                              userdat.save(function(err){
                                 if(err){
                                   res.send(err);
                                 }
-                                // Si tout est ok
                                 res.json({message : 'Mise a jour des donnees effectuee'});
                               });                
                 });
 })
 .delete(function(req,res){ 
  
-    Sujet.remove({_id: req.params.sujet_id}, function(err, sujet){
+    UserData.remove({_id: req.params.userdata_id}, function(err, userdat){
         if (err){
             res.send(err); 
         }
-        res.json({message:"Sujet supprime de la base de donnees"}); 
+        res.json({message:"Suppression d'une donnee utilisateur"}); 
     }); 
     
 });
