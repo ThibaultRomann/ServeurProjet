@@ -48,10 +48,11 @@ myRouter.route('/userdata')
 
 // Implémentation des méthodes de l'API REST (get, post, put, delete) 
 .get(function(req,res){ 
-	  res.json({
- message : "Liste des donnees utilisateurs dans la base de donnees:",
- nbResultat : req.query.maxresultat, 
- methode : req.method });
+            UserData.find(function(err, userdata) {
+            if (err)
+                res.send(err);
+            res.json(userdata);
+        });
 })
 
 .post(function(req,res){
@@ -81,6 +82,7 @@ myRouter.route('/userscore')
 // Implémentation des méthodes de l'API REST (get, post, put, delete) 
 .get(function(req,res){ 
     res.json({
+
  message : "Liste des scores utilisateurs dans la base de donnees:",
  nbResultat : req.query.maxresultat, 
  methode : req.method });
