@@ -20,7 +20,8 @@ db.once('open', function (){
 var userDataSchema = mongoose.Schema({
     idclient: String, 
     idexo: String, 
-    reponse : String   
+    reponse : String,
+    dateexo :String,   
 }); 
 
 var UserData = mongoose.model('UserData', userDataSchema);
@@ -60,6 +61,7 @@ myRouter.route('/userdata')
       data.idclient = req.body.idclient;
       data.idexo = req.body.idexo;
       data.reponse = req.body.reponse;
+      data.dateexo = req.body.dateexo;
       data.save(function(err){
         if(err){
           res.send(err);
