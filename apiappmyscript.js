@@ -48,12 +48,14 @@ var myRouter = express.Router();
 myRouter.route('/userdata')
 
 // Implémentation des méthodes de l'API REST (get, post, put, delete) 
-.get(function(req,res){ 
-            UserData.find(function(err, userdata) {
+.get(function(req,res){
+            UserData.find(function(err,userdata){
+            //UserData.find({}, {"sort" : [['dateexo', 'asc']]}, function(err, userdata) {
+              //UserData.find().sort({'dateexo':1}, function(err, userdata) {
             if (err)
                 res.send(err);
             res.json(userdata);
-        });
+        }).sort({'dateexo':1});
 })
 
 .post(function(req,res){
